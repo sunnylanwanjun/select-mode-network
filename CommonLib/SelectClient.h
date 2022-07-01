@@ -8,7 +8,7 @@
 #include "Macro.h"
 #include "IClient.h"
 class DLL_API SelectClient :public IClient {
-private:
+protected:
 	SOCKET _sock;
 
 	OBuffer _oRecv;

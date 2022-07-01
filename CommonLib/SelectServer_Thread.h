@@ -52,6 +52,7 @@ public:
 	~SelectClientHandle();
 	void Close();
 	void HandleThread();
+	void Broadcast(MsgHead* msg, const std::map<IMsgSend*, bool>& excludeClient);
 	void GetSendMsgMemInfo(MemInfo* memInfo) {
 		_sendMsgPool.GetInfo(memInfo);
 	}
@@ -83,5 +84,6 @@ public:
 	bool IsRun();
 	int OnRun();
 	void OnMsgHandle(IMsgSend* msgSender, MsgHead* msg);
+	void Broadcast(MsgHead* msg, const std::map<IMsgSend*, bool>& excludeClient);
 };
 #endif

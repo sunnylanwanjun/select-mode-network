@@ -22,7 +22,7 @@ void Server01::ServerHandle::OnMsgHandle(IMsgSend* msgSender, MsgHead* msg) {
 			MsgNewClientLoginResp newClient(login->userId);
 			std::map<IMsgSend*, bool> excluteSock;
 			excluteSock[msgSender] = true;
-			broadcast(&newClient, &excluteSock);
+			Broadcast(&newClient, excluteSock);
 
 			break;
 		}
@@ -31,6 +31,12 @@ void Server01::ServerHandle::OnMsgHandle(IMsgSend* msgSender, MsgHead* msg) {
 			LOG("userId:%s req logout\n",logout->userId);
 			MsgHead head(MsgID::Logout);
 			msgSender->SendMsg(&head);
+			break;
+		}
+		case MsgID::Broadcast: {
+			std::map<IMsgSend*, bool> excluteSock;
+			// excluteSock[msgSender] = true;
+			Broadcast(msg, excluteSock);
 			break;
 		}
 		default: {
@@ -68,7 +74,7 @@ Server01::Server01() :_runing(true) {
 		return;
 	}
 
-	while (_runing&&server.IsRun()) {
+	while (_runing) {
 		server.OnRun();
 	}
 }

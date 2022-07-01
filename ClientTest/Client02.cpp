@@ -36,6 +36,12 @@ void Client02::ClientHandle::OnRecvMsg(MsgHead* msg) {
 	case MsgID::NewClientLogin: {
 		MsgNewClientLoginResp *newClient = (MsgNewClientLoginResp*)msg;
 		LOG("new client userId is:%s\n", newClient->userId);
+		break;
+	}
+	case MsgID::Broadcast: {
+		MsgBroadcast* newClient = (MsgBroadcast*)msg;
+		LOG("broadcast content is:%d, %s\n", _sock, newClient->content);
+		break;
 	}
 	default:
 		break;

@@ -43,6 +43,12 @@ void Client01::ClientHandle::OnRecvMsg(MsgHead* msg) {
 	case MsgID::NewClientLogin: {
 		MsgNewClientLoginResp *newClient = (MsgNewClientLoginResp*)msg;
 		LOG("new client userId is:%s\n", newClient->userId);
+		break;
+	}
+	case MsgID::Broadcast: {
+		MsgBroadcast* newClient = (MsgBroadcast*)msg;
+		LOG("broadcast content is:%d, %s\n", _sock, newClient->content);
+		break;
 	}
 	default:
 		break;
@@ -87,13 +93,13 @@ Client01::Client01():_memoryPool(ThreadSafeType::Safe), _client(nullptr){
 }
 
 void Client01::SendThread() {
-	while (_client->IsRun()) {
+	while (_client && _client->IsRun()) {
 		_client->SendThread();
 	}
 }
 
 void Client01::RecvThread() {
-	while (_client->IsRun()) {
+	while (_client && _client->IsRun()) {
 		_client->RecvThread();
 	}
 }
@@ -153,6 +159,10 @@ int Client01::processorSend(char* inputBuf, ClientHandle* client) {
 	}
 	else if (0 == strcmp_ex(inputBuf, "getInfo")) {
 		MsgHead info(MsgID::Info);
+		client->SendMsg(&info);
+	}
+	else if (0 == strcmp_ex(inputBuf, "broadcast")) {
+		MsgBroadcast info("TestBroadcast");
 		client->SendMsg(&info);
 	}
 	else {

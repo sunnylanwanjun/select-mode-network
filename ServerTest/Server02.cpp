@@ -39,6 +39,12 @@ void Server02::ServerHandle::OnMsgHandle(IMsgSend* msgSender, MsgHead* msg){
 			msgSender->SendMsg(&head);
 			break;
 		}
+		case MsgID::Broadcast: {
+			std::map<IMsgSend*, bool> excluteSock;
+			excluteSock[msgSender] = true;
+			Broadcast(msg, excluteSock);
+			break;
+		}
 		default: {
 			MsgUnknowResp info("what do you want to do");
 			msgSender->SendMsg(&info);

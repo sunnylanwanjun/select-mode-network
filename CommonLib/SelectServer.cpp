@@ -127,15 +127,21 @@ int SelectServer::OnRun() {
 	////////////////////////////////////////////////////
 
 	fd_set fdRead;
-	fd_set fdWrite;
-	fd_set fdExcept;
+	// fd_set fdWrite;
+	// fd_set fdExcept;
+
 	FD_ZERO(&fdRead);
-	FD_ZERO(&fdWrite);
-	FD_ZERO(&fdExcept);
+	// FD_ZERO(&fdWrite);
+	// FD_ZERO(&fdExcept);
 
 	if (_clientChange) {
 		//LOG("fd set server socket:%d\n", _serverSock);
+		FD_ZERO(&_fdReadBackup);
 		FD_SET(_serverSock, &_fdReadBackup);
+		if (_clientSockArr.size() > 0)
+		{
+			_maxSock = _clientSockArr.front()->_clientSock;
+		}
 		//把客户端的socket都放在fdRead集合中
 		for (auto it = _clientSockArr.begin(); it != _clientSockArr.end(); it++) {
 			//添加的时候，会把元素往后添加
@@ -149,8 +155,8 @@ int SelectServer::OnRun() {
 	}
 	memcpy(&fdRead, &_fdReadBackup, sizeof(_fdReadBackup));
 
-	timeval t = { 0,0 };
-	int n = select(_maxSock + 1, &fdRead, &fdWrite, &fdExcept, &t);
+	timeval t = { 0, 0 };
+	int n = select(_maxSock + 1, &fdRead, 0, 0, &t);
 	if (n < 0) {
 		LOG("ERROR:select return %d,maxSock:%d,_serverSock:%d\n",n, _maxSock, _serverSock);
 		Close();
@@ -206,11 +212,11 @@ int SelectServer::OnRun() {
 	return 0;
 }
 
-void SelectServer::broadcast(MsgHead* msg, std::map<IMsgSend*, bool>* excludeClient) {
+void SelectServer::Broadcast(MsgHead* msg, const std::map<IMsgSend*, bool>& excludeClient) {
 	if (_serverSock == INVALID_SOCKET)
 		return;
 	for (auto it = _clientSockArr.begin(); it != _clientSockArr.end(); it++) {
-		if (excludeClient&&excludeClient->find(*it) != excludeClient->end()) {
+		if (excludeClient.find(*it) != excludeClient.end()) {
 			continue;
 		}
 		(*it)->SendMsg(msg);

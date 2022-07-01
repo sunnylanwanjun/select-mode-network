@@ -43,6 +43,6 @@ public:
 	void Close();
 	bool IsRun();
 	int OnRun();
-	void broadcast(MsgHead* msg, std::map<IMsgSend*, bool>* excludeClient);
+	void Broadcast(MsgHead* msg, const std::map<IMsgSend*, bool>& excludeClient);
 };
 #endif

@@ -31,6 +31,7 @@
 #ifndef RECV_BUFF_SZIE
 #define RECV_BUFF_SZIE 10240
 #endif // !RECV_BUFF_SZIE
+#include <functional>
 
 //客户端数据类型
 class ClientSocket 

@@ -12,7 +12,7 @@
 #include "VarMemPool.h"
 #include <atomic>
 class DLL_API SelectClient_Thread :public IClient {
-private:
+protected:
 	VarMemPool& _memoryPool;
 
 	SOCKET _sock;

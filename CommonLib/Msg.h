@@ -3,6 +3,7 @@
 #include <string>
 #include "SocketHeader.h"
 enum MsgID {
+	Broadcast,
 	Error,
 	Info,
 	Unknow,
@@ -20,6 +21,16 @@ struct MsgHead {
 	MsgHead() :size(sizeof(MsgHead)),msgId(MsgID::Error),code(0){
 	}
 	MsgHead(unsigned short id, unsigned short c=0):msgId(id), size(sizeof(MsgHead)), code(c) {
+	}
+};
+
+struct MsgBroadcast: public MsgHead {
+	char content[256];
+	MsgBroadcast(const char* str) {
+		unsigned int contentSize = strlen(str) + 1;
+		size = sizeof(MsgHead) + contentSize;
+		msgId = MsgID::Broadcast;
+		memcpy(content, str, contentSize);
 	}
 };
 

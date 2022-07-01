@@ -36,7 +36,7 @@ SelectClientHandle::SelectClientHandle(int handleID,
 	_hasChangeClient(true),
 	_maxSock(INVALID_SOCKET),
 	_msgHandle(msgHandle),
-	_sendMsgPool(ThreadSafeType::UnSafe)
+	_sendMsgPool(ThreadSafeType::Safe)
 {
 	FD_ZERO(&_fdRead_backup);
 	std::thread thRecv(&SelectClientHandle::HandleThread, this);
@@ -48,6 +48,18 @@ SelectClientHandle::~SelectClientHandle() {
 	while (!_isHandleStop);
 	Close();
 	LOG("SelectClientHandle %d has finished\n", _clientHandleID);
+}
+
+// TODO: MayBe Unsafe
+void SelectClientHandle::Broadcast(MsgHead* msg, const std::map<IMsgSend*, bool>& excludeClient)
+{
+	for (auto it = _clientSockArr.begin(); it != _clientSockArr.end(); it++) {
+		if (excludeClient.find(*it) != excludeClient.end()) {
+			continue;
+		}
+		LOG("SelectClientHandle Broadcast:%d\n", (*it)->_clientSock);
+		(*it)->SendMsg(msg);
+	}
 }
 
 void SelectClientHandle::Close() {
@@ -154,7 +166,8 @@ void SelectClientHandle::HandleThread() {
 		//在大量连接进来后，但没有发数据时，子线程不处理连接，于是可以让主线程快速处理请求
 		//不与主线程争抢资源
 		//select之后，fdRead中只会保留有数据读取的sock
-		int n = select(_maxSock + 1, &_fdRead, 0, 0, nullptr);
+		timeval t = { 0, 0 };
+		int n = select(_maxSock + 1, &_fdRead, 0, 0, &t);
 		if (n < 0) {
 			Close();
 			continue;
@@ -405,57 +418,13 @@ int SelectServer_Thread::OnRun() {
 	return 0;
 }
 
-//void SelectServer_Thread::OnQMClient(QMHead* pQMHead) {
-//	switch (pQMHead->handleType) {
-//		case QMType::ClientOut: {
-//			QMClientOut* pClientOut = (QMClientOut*)pQMHead;
-//			SOCKET clientSock = pClientOut->clientSock;
-//			_sock2IDMap.erase(clientSock);
-//			_eachClientNum[pClientOut->handleId]--;
-//			_totalClientNum--;
-//			//LOG("handle qm handleID:%d,threadClientNum:%d\n", pClientOut->handleId, pClientOut->clientNum);
-//			assert(_eachClientNum[pClientOut->handleId] >= 0);
-//			assert(_totalClientNum >= 0);
-//			break;
-//		}
-//		case QMType::ClientMsg: {
-//			QMClientMsg* pClientMsg = (QMClientMsg*)pQMHead;
-//			memcpy(_package, pClientMsg->msg, pClientMsg->msg->size);
-//			OnRecvMsg(pClientMsg->clientSock, (MsgHead*)_package, pClientMsg->handleId, pClientMsg->clientNum, _sub2MainQueue.size());
-//			_memoryPool.Free(pClientMsg->msg, pClientMsg->msg->size);
-//			break;
-//		}
-//	}
-//}
-
-//int SelectServer_Thread::SendMsg(SOCKET clientSock, MsgHead* msg) {
-//	if (_serverSock == INVALID_SOCKET || clientSock == INVALID_SOCKET) {
-//		return -1;
-//	}
-//	LOG("SendMsg clientSock:%d msgId:%d,msgSize:%d,msgCode:%d\n", clientSock, msg->msgId, msg->size, msg->code);
-//	int totalLen = msg->size;
-//	int offset = 0;
-//	while (totalLen > 0) {
-//		int sendLen = send(clientSock, (char*)msg + offset, totalLen, 0);
-//		if (sendLen <= 0) {
-//			LOG("ERROR:send msg failed\n");
-//			return -1;
-//		}
-//		totalLen -= sendLen;
-//		offset += sendLen;
-//	}
-//	return 0;
-//}
-
 void SelectServer_Thread::OnMsgHandle(IMsgSend* msgSender,MsgHead* msg) {
-	/*
-	QMClientMsg* pQMClient = (QMClientMsg*)_memoryPool.Alloc(sizeof(QMClientMsg));
-	pQMClient->Init();
-	pQMClient->clientNum = _clientSockArr.size();
-	pQMClient->handleId = _clientHandleID;
-	pQMClient->clientSock = clientSock;
-	pQMClient->msg = (MsgHead*)_memoryPool.Alloc(msg->size);
-	memcpy(pQMClient->msg, msg, msg->size);
-	_sub2MainQueue.push(pQMClient);
-	*/
+}
+
+void SelectServer_Thread::Broadcast(MsgHead* msg, const std::map<IMsgSend*, bool>& excludeClient) {
+	if (_serverSock == INVALID_SOCKET)
+		return;
+	for (auto pClient : _clientHandleArr) {
+		pClient->Broadcast(msg, excludeClient);
+	}
 }

@@ -21,9 +21,6 @@
     <ClCompile Include="Client01.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Client01.h">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="Client02.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -42,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Client04.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Client01.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

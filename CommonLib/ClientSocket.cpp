@@ -119,8 +119,9 @@ int ClientSocket::ProcessorRecv() {
 			break;
 		}
 		unsigned short  msgLen = _oRecv.readUShort();
-		assert(msgLen<=PACKAGE_MAX_SIZE);
 		if (msgLen > PACKAGE_MAX_SIZE) {
+			// assert(msgLen<=PACKAGE_MAX_SIZE);
+			LOG("ERROR:ClientSocket ProcessorRecv msgLen(%d) > PACKAGE_MAX_SIZE(%d), socket:%d\n", msgLen, PACKAGE_MAX_SIZE, _clientSock);
 			Close();
 			return -1;
 		}
@@ -160,6 +161,7 @@ int ClientSocket::SendData(char* data, USHORT dataLen) {
 	}
 
 #ifdef DEBUG_SERVER_PERFORMANCE
+	// TODO: MayBe Unsafe
 	if (_testSendQueueSize != nullptr)
 		(*_testSendQueueSize)++;
 	if (_testSendTimes != nullptr)
